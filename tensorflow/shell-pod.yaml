@@ -1,0 +1,23 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: shell
+  namespace: dmru01
+spec:
+  containers:
+  - name: shell
+    image: ubuntu:latest
+    command:
+      - "/bin/sh"
+    args:
+      - -c
+      - set -xe; trap exit INT TERM; while true; do sleep 5; done
+    workingDir: /data
+    volumeMounts:
+      - mountPath: /data
+        name: data-volume
+  restartPolicy: Never
+  volumes:
+  - name: data-volume
+    persistentVolumeClaim:
+      claimName: volcano-workspace

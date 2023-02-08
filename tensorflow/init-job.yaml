@@ -1,0 +1,34 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-job
+  namespace: dmru01
+spec:
+  template:
+    # This is the pod template
+    spec:
+      containers:
+      - name: init
+        image: ubuntu:latest
+        command:
+          - 'sh'
+          - '-c'
+          - >-
+            set -ex;
+            echo "Initialize source code";
+            apt-get update;
+            apt-get install -y git;
+            if [ ! -e volcano-k8s-examples ]; then
+              git clone https://github.com/dmrub/volcano-k8s-examples.git;
+            fi;
+            echo "Done";
+        workingDir: /data
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      restartPolicy: OnFailure
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: volcano-workspace

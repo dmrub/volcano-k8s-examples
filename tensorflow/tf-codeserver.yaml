@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: tf-codeserver
+  name: tf-codeserver
+  namespace: dmru01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: tf-codeserver
+  template:
+    metadata:
+      labels:
+        run: tf-codeserver
+    spec:
+      containers:
+      - name: tf-codeserver
+        image: ghcr.io/dmrub/tensorflow-code-server:2.8.4-jupyter
+        imagePullPolicy: Always
+        env:
+        #- name: S6_VERBOSITY
+        #  value: "5"
+        - name: DEFAULT_WORKSPACE
+          value: /home/jovyan
+        ports:
+        - containerPort: 8888
+          name: notebook-port
+          protocol: TCP
+        #resources:
+        #  limits:
+        #    nvidia.com/gpu: "1"
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: data-volume
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: volcano-workspace
