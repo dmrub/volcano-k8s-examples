@@ -27,6 +27,10 @@ Source code based on:
     ```sh
     git clone https://github.com/dmrub/volcano-k8s-examples.git
     ```
+    Alternatively, you can initialise the source code with a Kubernetes job that clones the repository and then exits:
+    ```sh
+    kubectl apply -f init-job.yaml
+    ```
 7. Run the pytorch multiworker job
     ```sh
     kubectl apply -f volcano-gpu-pytorch-multi-worker.yaml
