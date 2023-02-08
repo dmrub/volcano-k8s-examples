@@ -1,0 +1,63 @@
+# Volcano example for pytorch
+# Based on
+# https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
+# https://github.com/yangkky/distributed_tutorial/blob/master/src/mnist-distributed.py
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-multi-worker
+  namespace: dmru01
+spec:
+  minAvailable: 3
+  schedulerName: volcano
+  queue: gpu3
+  plugins:
+    env: []
+    svc: []
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+  tasks:
+    - replicas: 3
+      name: worker
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          imagePullSecrets:
+            - name: default-secret
+          containers:
+            - name: pytorch
+              image: nvcr.io/nvidia/pytorch:21.12-py3
+              command:
+                - sh
+                - -c
+                - |
+                  export MASTER_ADDR=$(head -n1 /etc/volcano/worker.host);
+                  export MASTER_PORT=8888;
+                  echo "Starting ..."
+                  python3 mnist-distributed.py -n 3 -g 1 -nr ${VK_TASK_INDEX} --epochs 10;
+                  ERR=$?;
+                  echo "Error: $ERR";
+                  if [ $ERR -eq 134 ]; then
+                    ls -lah;
+                    echo "Process PID: $$";
+                    while true; do sleep 10; done;
+                  fi
+                  exit $ERR;
+              ports:
+                - containerPort: 8888
+                  name: pytorch-port
+              resources:
+                limits:
+                  nvidia.com/gpu: "1"
+              workingDir: /data/volcano-k8s-examples/pytorch/src
+              volumeMounts:
+                - mountPath: /data
+                  name: data-volume
+          volumes:
+            - name: data-volume
+              persistentVolumeClaim:
+                claimName: volcano-workspace
+          restartPolicy: OnFailure
