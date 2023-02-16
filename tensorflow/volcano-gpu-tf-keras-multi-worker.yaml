@@ -29,7 +29,9 @@ spec:
             - name: default-secret
           containers:
             - name: tensorflow
-              image: tensorflow/tensorflow:2.8.4-gpu
+              #image: tensorflow/tensorflow:2.8.4-gpu
+              image: ghcr.io/dfki-asr/tensorflow:2.8.4-gpu-fix
+              imagePullPolicy: Always
               env:
                 - name: MODEL_PATH
                   value: ./keras-model # /tmp/keras-model
