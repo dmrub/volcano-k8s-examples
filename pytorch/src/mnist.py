@@ -12,6 +12,9 @@ import torch.distributed as dist
 from apex.parallel import DistributedDataParallel as DDP
 from apex import amp
 
+os.environ["AWS_ACCESS_KEY_ID"] = "minio"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "minio123"
+os.environ["MLFLOW_S3_ENDPOINT_URL"] = "http://minio.mlflow-system.svc:9000"
 
 def main():
     parser = argparse.ArgumentParser(
@@ -123,6 +126,10 @@ def train(gpu, args):
         pin_memory=True,
     )
 
+    if mlflow_enabled:
+        mlflow.start_run()
+        mlflow.log_artifact(os.path.abspath(__file__), 'source code')
+
     start = datetime.now()
     total_step = len(train_loader)
     for epoch in range(args.epochs):
@@ -148,6 +155,12 @@ def train(gpu, args):
     if gpu == 0:
         print("Training complete in: " + str(datetime.now() - start))
 
+    model_fn = "./mnist.model"
+    print("Save model to", model_fn, flush=True)
+    torch.save(model.state_dict(), model_fn)
+    if mlflow_enabled:
+        mlflow.log_artifact(os.path.abspath(model_fn), 'model')
+        mlflow.end_run()
 
 if __name__ == "__main__":
     main()
