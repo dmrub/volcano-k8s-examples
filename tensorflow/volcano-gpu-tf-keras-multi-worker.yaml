@@ -30,7 +30,7 @@ spec:
           containers:
             - name: tensorflow
               #image: tensorflow/tensorflow:2.8.4-gpu
-              image: ghcr.io/dfki-asr/tensorflow:2.8.4-gpu-fix
+              image: ghcr.io/dfki-asr/tensorflow:2.9.1-gpu-fix
               imagePullPolicy: Always
               env:
                 - name: MODEL_PATH
