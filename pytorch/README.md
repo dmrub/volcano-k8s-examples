@@ -7,7 +7,12 @@ Source code based on:
 
 # Instructions
 
-1. If necessary, replace the namespace field in the yaml files with your own or delete it if you want to use your default namespace.
+1. If necessary, replace the namespace field in the yaml files with your own or delete it if you want to use your default namespace. You can use for this following shell command in this directory or use script `set-namespace.sh`:
+    ```sh
+    for f in *.yaml; do echo "$f"; sed -i "s/dmru01/NEW_NAMESPACE_NAME/g" "$f"; done
+    # Or
+    ./set-namespace.sh NEW_NAMESPACE_NAME
+    ```
 2. Replace the name of the PVC in the YAML files if necessary, e.g. if you want to use your own PVC.
 3. You can create a namespace either with `kubectl apply -f ns.yaml` or with `kubectl create namespace NAMESPACE_NAME`.
 4. If you do not have your own PVC, create a PVC from the file `pvc.yaml` with the command:
