@@ -6,7 +6,7 @@ apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
   name: tf-keras-multi-worker
-  namespace: dmru01
+  namespace: dmrub
 spec:
   minAvailable: 3
   schedulerName: volcano

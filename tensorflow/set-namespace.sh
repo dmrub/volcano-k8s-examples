@@ -14,11 +14,11 @@ fatal() {
 }
 
 message() {
-    echo "$*"
+    echo >&2 "$*"
 }
 
 print-help() {
-    echo "./set-namespace.sh [--help] NAMESPACE"
+    echo "$(basename "$0") [--help] NAMESPACE"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -57,9 +57,9 @@ for FN in *.yaml; do
     KIND=$(grep "kind:" "$FN" | sed -En 's/^[[:space:]]*kind:[[:space:]]*([[:alnum:]]*)[[:space:]]*$/\1/gp')
     #echo "$KIND"
     if [[ "$KIND" = "Namespace" ]]; then
-        printf -v SED_EXPR 's/^([[:space:]]*)name:([[:space:]]*)[[:alnum:]]*([[:space:]]*)$/\\1name: %s/g' "$NS"
+        printf -v SED_EXPR 's/^([[:space:]]*)name:([[:space:]]*)[^[:space:]]*([[:space:]]*)$/\\1name: %s/g' "$NS"
     else
-        printf -v SED_EXPR 's/^([[:space:]]*)namespace:([[:space:]]*)[[:alnum:]]*([[:space:]]*)$/\\1namespace: %s/g' "$NS"
+        printf -v SED_EXPR 's/^([[:space:]]*)namespace:([[:space:]]*)[^[:space:]]*([[:space:]]*)$/\\1namespace: %s/g' "$NS"
     fi
     sed -E "$SED_EXPR" "$FN" | \
         sed -E "s/system:serviceaccount:([[:alnum:]]+):default/system:serviceaccount:${NS}:default/g" | \

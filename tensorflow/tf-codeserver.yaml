@@ -4,7 +4,7 @@ metadata:
   labels:
     run: tf-codeserver
   name: tf-codeserver
-  namespace: dmru01
+  namespace: dmrub
 spec:
   replicas: 1
   selector:

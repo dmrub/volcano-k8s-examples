@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: init-job
-  namespace: dmru01
+  namespace: dmrub
 spec:
   template:
     # This is the pod template

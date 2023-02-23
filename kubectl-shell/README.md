@@ -2,7 +2,7 @@
 
 # Introduction
 
-If you want to access Kubernetes within the pod, for example, using kubectl commands to access resources as you would on your local machine, you must assign a ServiceAccount with appropriate permissions to your pod or deployment. Alternatively, you can assign appropriate permissions to the default `ServiceAccount`. The script [generate-kubectl-access-rbac.sh](generate-kubectl-access-rbac.sh) generates permissions and the ServiceAccount "kubectl-access". **Note that you must have the appropriate permissions to apply the generated file to the cluster.**
+If you want to access Kubernetes within the pod, for example, using [kubectl](https://kubernetes.io/docs/reference/kubectl/) commands to access resources as you would on your local machine, you must assign a ServiceAccount with appropriate permissions to your pod or deployment. Alternatively, you can assign appropriate permissions to the default `ServiceAccount`. The script [generate-kubectl-access-rbac.sh](generate-kubectl-access-rbac.sh) generates permissions and the ServiceAccount "kubectl-access". **Note that you must have the appropriate permissions to apply the generated file to the cluster.**
 Then you need to add the following line to the specification of your pod or deployment:
 
 ```yaml

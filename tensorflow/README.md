@@ -8,7 +8,7 @@ Source code based on:
 
 1. If necessary, replace the namespace field in the yaml files with your own or delete it if you want to use your default namespace. You can use for this following shell command in this directory or use script `set-namespace.sh`:
     ```sh
-    for f in *.yaml; do echo "$f"; sed -i "s/dmru01/NEW_NAMESPACE_NAME/g" "$f"; done
+    for f in *.yaml; do echo "$f"; sed -i "s/dmrub/NEW_NAMESPACE_NAME/g" "$f"; done
     # Or
     ./set-namespace.sh NEW_NAMESPACE_NAME
     ```
@@ -40,8 +40,7 @@ Source code based on:
     kubectl apply -f volcano-gpu-tf-keras-multi-worker.yaml
     ```
 9. Use `kubectl get pods` to check the current status and `kubectl logs POD_NAME` to check the output of one of the running pods. You can use the code server to edit the source code between starts of your job. You can log into the running container with the command `kubectl exec -ti POD_NAME -- /bin/bash`.
-
-10. For accessing Kubernetes from the code-server IDE Kubernetes administrator need to apply file `rbac.yaml`. Additinally you need to add to your `~/.bashrc` file in the code-server IDE following lines:
+10. To access Kubernetes from the code server IDE, the Kubernetes administrator must apply the `rbac.yaml` file. Note that `rbac.yaml` grants permission to the default security account of the namespace used by all pods. If you want to grant Kubernetes access only to a subset of pods, you must follow the instructions in the `kubectl-shell` directory in the root of this repository [README.md](../kubectl-shell/README.md). In addition, you must add the following lines to your `~/.bashrc` file in the code server IDE:
     ```sh
     source /usr/share/bash-completion/bash_completion
     source <(kubectl completion bash | sed 's/--request-timeout=5s/--request-timeout=0/g')

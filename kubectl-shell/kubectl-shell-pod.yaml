@@ -3,13 +3,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kubectl-access
-  namespace: paas01
+  namespace: dmrub
 ---
 kind: Pod
 apiVersion: v1
 metadata:
   name: kubectl-shell
-  namespace: paas01
+  namespace: dmrub
 spec:
   serviceAccountName: kubectl-access
   containers:

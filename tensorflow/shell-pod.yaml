@@ -2,7 +2,7 @@ kind: Pod
 apiVersion: v1
 metadata:
   name: shell
-  namespace: dmru01
+  namespace: dmrub
 spec:
   containers:
   - name: shell

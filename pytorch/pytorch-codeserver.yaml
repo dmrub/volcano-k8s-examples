@@ -4,7 +4,7 @@ metadata:
   labels:
     run: pytorch-codeserver
   name: pytorch-codeserver
-  namespace: dmru01
+  namespace: dmrub
 spec:
   replicas: 1
   selector:

@@ -2,7 +2,7 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: dmru01
+  namespace: dmrub
   name: deployment-manager
 rules:
 - apiGroups: [""]
@@ -37,10 +37,10 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: deployment-manager-binding
-  namespace: dmru01
+  namespace: dmrub
 subjects:
 - kind: User
-  name: "system:serviceaccount:dmru01:default"
+  name: "system:serviceaccount:dmrub:default"
   apiGroup: ""
 roleRef:
   kind: Role
@@ -52,7 +52,7 @@ kind: ClusterRole
 metadata:
   annotations:
     rbac.authorization.kubernetes.io/autoupdate: "true"
-  name: "dmru01-cluster-user"
+  name: "dmrub-cluster-user"
 rules:
 - apiGroups: [""]
   resources: ["nodes"]
@@ -64,12 +64,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: "dmru01-cluster-user"
+  name: "dmrub-cluster-user"
 subjects:
 - kind: User
-  name: "system:serviceaccount:dmru01:default"
+  name: "system:serviceaccount:dmrub:default"
   apiGroup: ""
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: "dmru01-cluster-user"
+  name: "dmrub-cluster-user"
