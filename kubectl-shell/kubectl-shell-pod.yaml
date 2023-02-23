@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubectl-access
+  namespace: paas01
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: kubectl-shell
+  namespace: paas01
+spec:
+  serviceAccountName: kubectl-access
+  containers:
+  - name: shell
+    image: ubuntu:latest
+    command:
+      - "/bin/sh"
+    env:
+      - name: KUBECTL_ARCH
+        value: amd64
+      - name: KUBECTL_VERSION
+        value: v1.21.0
+    args:
+      - -c
+      - >-
+        set -xe;
+        export DEBIAN_FRONTEND=noninteractive;
+        apt-get update;
+        apt-get install -y ca-certificates curl bash bash-completion;
+        if [ ! -f /data/kubectl ]; then
+          curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" -o /data/kubectl;
+          curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256;
+          echo "$(cat /tmp/kubectl.sha256) /data/kubectl" | sha256sum --check;
+          rm /tmp/kubectl.sha256;
+        fi;
+        cp -v /data/kubectl /usr/local/bin/kubectl;
+        chmod +x /usr/local/bin/kubectl;
+        if [ ! -f /data/rakkess-amd64-linux ]; then
+          curl -sL https://github.com/corneliusweig/rakkess/releases/download/v0.5.0/rakkess-amd64-linux.tar.gz -o /data/rakkess-amd64-linux.tar.gz;
+          tar -C /data -xf  /data/rakkess-amd64-linux.tar.gz rakkess-amd64-linux;
+        fi;
+        chmod +x /data/rakkess-amd64-linux;
+        cp -v /data/rakkess-amd64-linux /usr/local/bin/rakkess;
+        echo 'if ! type _init_completion 2>/dev/null; then source /usr/share/bash-completion/bash_completion; fi;' >> ~/.bashrc;
+        echo 'source <(kubectl completion bash | sed 's/--request-timeout=5s/--request-timeout=0/g')' >> ~/.bashrc;
+        echo 'alias k=kubectl' >> ~/.bashrc;
+        echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc;
+        trap exit INT TERM;
+        while true; do sleep 5; done;
+    workingDir: /data
+    volumeMounts:
+      - mountPath: /data
+        name: data-volume
+  restartPolicy: Never
+  volumes:
+    - name: data-volume
+      emptyDir:
+        sizeLimit: 500Mi
