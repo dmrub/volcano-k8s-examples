@@ -10,7 +10,7 @@ metadata:
 spec:
   minAvailable: 3
   schedulerName: volcano
-  queue: gpu3
+  queue: default
   plugins:
     env: []
     svc: []
