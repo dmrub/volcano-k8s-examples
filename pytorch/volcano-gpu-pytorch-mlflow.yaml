@@ -1,0 +1,74 @@
+# Volcano example for pytorch
+# Based on
+# https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
+# https://github.com/yangkky/distributed_tutorial/blob/master/src/mnist-distributed.py
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-mlflow
+  namespace: dmrub
+spec:
+  minAvailable: 1
+  schedulerName: volcano
+  queue: default
+  plugins:
+    env: []
+    svc: []
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+  tasks:
+    - replicas: 1
+      name: worker
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          imagePullSecrets:
+            - name: default-secret
+          containers:
+            - name: pytorch
+              image: nvcr.io/nvidia/pytorch:21.12-py3
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  value: minio
+                - name: AWS_SECRET_ACCESS_KEY
+                  value: minio123
+                - name: MLFLOW_S3_ENDPOINT_URL
+                  value: http://minio.mlflow-system.svc:9000
+                - name: MLFLOW_TRACKING_URI
+                  value: http://mlflow-server-service.mlflow-system:5000
+                - name: MLFLOW_EXPERIMENT_NAME
+                  value: mnist-experiment-3
+              command:
+                - sh
+                - -c
+                - |
+                  nvidia-smi;
+                  nvidia-smi --format=csv,noheader --query-gpu=name,serial,uuid,pci.bus_id;
+                  pip install pytorch-lightning mlflow boto3;
+                  python3 mnist-mlflow-pytorch-lightning.py
+                  ERR=$?;
+                  echo "Error: $ERR";
+                  if [ $ERR -eq 134 ]; then
+                    ls -lah;
+                    echo "Process PID: $$";
+                    while true; do sleep 10; done;
+                  fi
+                  exit $ERR;
+              ports:
+                - containerPort: 8888
+                  name: pytorch-port
+              resources:
+                limits:
+                  nvidia.com/gpu: "1"
+              workingDir: /data/volcano-k8s-examples/pytorch/src
+              volumeMounts:
+                - mountPath: /data
+                  name: data-volume
+          volumes:
+            - name: data-volume
+              persistentVolumeClaim:
+                claimName: volcano-workspace
+          restartPolicy: OnFailure
