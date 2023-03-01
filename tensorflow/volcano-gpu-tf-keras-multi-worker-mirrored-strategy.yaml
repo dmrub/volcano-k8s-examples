@@ -1,0 +1,85 @@
+# Volcano example for tensorflow MultiWorkerMirroredStrategy
+# Based on
+# https://github.com/tensorflow/docs/blob/master/site/en/tutorials/distribute/multi_worker_with_keras.ipynb
+# https://github.com/volcano-sh/volcano/blob/master/docs/user-guide/how_to_use_svc_plugin.md
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: tf-keras-multi-worker-mirrored-strategy
+  namespace: dmrub
+spec:
+  minAvailable: 3 # minimal number of pods
+  schedulerName: volcano
+  queue: default
+  plugins:
+    env: []
+    svc: []
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+  tasks:
+    - replicas: 3 # number of pods
+      name: worker
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          imagePullSecrets:
+            - name: default-secret
+          containers:
+            - name: tensorflow
+              #image: tensorflow/tensorflow:2.8.4-gpu
+              image: ghcr.io/dfki-asr/tensorflow:2.9.1-gpu-fix
+              imagePullPolicy: Always
+              env:
+                - name: MODEL_PATH
+                  value: ./keras-model # /tmp/keras-model
+                - name: TEMP_MODEL_PATH
+                  value: ./keras-model-temp # /tmp/keras-model # /var/data/keras-model
+                # DELETE_TEMP_MODEL_PATH = 1 sometimes will cause following error
+                # terminate called without an active exception
+                # Aborted (core dumped)
+                # https://github.com/tensorflow/tensorflow/issues/50853
+                # https://github.com/tensorflow/tensorflow/issues/55250
+                - name: DELETE_TEMP_MODEL_PATH
+                  value: "1"
+              command:
+                - sh
+                - -c
+                - |
+                  nvidia-smi --format=csv,noheader --query-gpu=name,serial,uuid,pci.bus_id;
+                  WORKER_HOST=`cat /etc/volcano/worker.host | sed 's/$/&:2222/g' | sed 's/^/"/;s/$/"/' | tr "\n" ","`;
+                  export TF_CONFIG="{\"cluster\":{\"worker\":[${WORKER_HOST}]},\"task\":{\"type\":\"worker\",\"index\":${VK_TASK_INDEX}}}";
+                  echo "TF_CONFIG=";
+                  echo "$TF_CONFIG" | python3 -m json.tool;
+                  ulimit -c unlimited;
+                  python3 main_multi_worker_mirrored_strategy.py;
+                  ERR=$?;
+                  echo "Error: $ERR";
+                  if [ $ERR -eq 134 ]; then
+                    ls -lah;
+                    echo "Process PID: $$";
+                    while true; do sleep 10; done;
+                  fi
+                  if [ $VK_TASK_INDEX -eq 0 ]; then
+                    if [ -e /tmp/keras-model ]; then
+                      rm -rf /tf/keras-model;
+                      mv -v /tmp/keras-model /tf;
+                    fi;
+                  fi;
+              ports:
+                - containerPort: 2222
+                  name: tfjob-port
+              resources:
+                limits:
+                  nvidia.com/gpu: "1" # <----- number of GPUs per pod
+              workingDir: /data/volcano-k8s-examples/tensorflow/src
+              volumeMounts:
+                - mountPath: /data
+                  name: data-volume
+          volumes:
+            - name: data-volume
+              persistentVolumeClaim:
+                claimName: volcano-workspace
+          restartPolicy: OnFailure
