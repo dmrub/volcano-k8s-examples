@@ -48,6 +48,7 @@ spec:
                 - sh
                 - -c
                 - |
+                  nvidia-smi --format=csv,noheader --query-gpu=name,serial,uuid,pci.bus_id;
                   WORKER_HOST=`cat /etc/volcano/worker.host | sed 's/$/&:2222/g' | sed 's/^/"/;s/$/"/' | tr "\n" ","`;
                   export TF_CONFIG="{\"cluster\":{\"worker\":[${WORKER_HOST}]},\"task\":{\"type\":\"worker\",\"index\":${VK_TASK_INDEX}}}";
                   echo "TF_CONFIG=";
