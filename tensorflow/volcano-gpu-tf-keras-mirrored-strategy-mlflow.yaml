@@ -1,0 +1,80 @@
+# Volcano example for tensorflow MirroredStrategy
+# We use one replic with multiple GPUs
+# Based on
+# https://github.com/tensorflow/docs/blob/master/site/en/tutorials/distribute/multi_worker_with_keras.ipynb
+# https://github.com/volcano-sh/volcano/blob/master/docs/user-guide/how_to_use_svc_plugin.md
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: tf-keras-mirrored-strategy-mlflow
+  namespace: dmrub
+spec:
+  minAvailable: 1 # minimal number of pods
+  schedulerName: volcano
+  queue: default
+  plugins:
+    env: []
+    svc: []
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+  tasks:
+    - replicas: 1 # number of pods
+      name: worker
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          imagePullSecrets:
+            - name: default-secret
+          containers:
+            - name: tensorflow
+              image: tensorflow/tensorflow:2.9.1-gpu
+              # image: ghcr.io/dfki-asr/tensorflow:2.9.1-gpu-fix
+              imagePullPolicy: Always
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  value: minio
+                - name: AWS_SECRET_ACCESS_KEY
+                  value: minio123
+                - name: MLFLOW_S3_ENDPOINT_URL
+                  value: http://minio.mlflow-system.svc:9000
+                - name: MLFLOW_TRACKING_URI
+                  value: http://mlflow-server-service.mlflow-system:5000
+                - name: MLFLOW_EXPERIMENT_NAME
+                  value: tf-mnist-experiment
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -xe;
+                  nvidia-smi;
+                  nvidia-smi --format=csv,noheader --query-gpu=name,serial,uuid,pci.bus_id;
+                  ulimit -c unlimited;
+                  apt-get update;
+                  apt-get install -y git; # required for mlfow
+                  pip install mlflow boto3;
+                  python3 main_mirrored_strategy.py;
+                  ERR=$?;
+                  echo "Error: $ERR";
+                  if [ $ERR -eq 134 ]; then
+                    ls -lah;
+                    echo "Process PID: $$";
+                    while true; do sleep 10; done;
+                  fi
+              ports:
+                - containerPort: 2222
+                  name: tfjob-port
+              resources:
+                limits:
+                  nvidia.com/gpu: "3" # <----- number of GPUs per pod
+              workingDir: /data/volcano-k8s-examples/tensorflow/src
+              volumeMounts:
+                - mountPath: /data
+                  name: data-volume
+          volumes:
+            - name: data-volume
+              persistentVolumeClaim:
+                claimName: volcano-workspace
+          restartPolicy: OnFailure

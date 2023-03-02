@@ -7,6 +7,15 @@ import shutil
 import tensorflow as tf
 import mnist_setup
 
+if 'MLFLOW_TRACKING_URI' in os.environ:
+    try:
+        import mlflow
+        import mlflow.keras
+        print(f'INFO: Use mlflow with MLFLOW_TRACKING_URI = {os.environ["MLFLOW_TRACKING_URI"]}')
+        mlflow.keras.autolog()
+    except ImportError as e:
+        print("WARNING: mlflow could not be imported, please install it first", file=sys.stderr)
+
 per_worker_batch_size = 64
 epochs = 3
 # per_worker_batch_size = 128
