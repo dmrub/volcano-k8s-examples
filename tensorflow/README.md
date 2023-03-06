@@ -35,12 +35,18 @@ Source code based on:
     ```sh
     kubectl apply -f init-job.yaml
     ```
-8. Run the tensorflow job with MirroredStrategy or with the MultiWorkerMirroredStrategy
+8. Run the tensorflow job with MirroredStrategy or with the MultiWorkerMirroredStrategy. The examples which use mlflow are in files with `mlflow` at the end.
     ```sh
     kubectl apply -f volcano-gpu-tf-keras-mirrored-strategy.yaml
     # Or
     kubectl apply -f volcano-gpu-tf-keras-multi-worker-mirrored-strategy.yaml
+    # Or
+    kubectl apply -f volcano-gpu-tf-keras-mirrored-strategy-mlflow.yaml
+    # Or
+    kubectl apply -f volcano-gpu-tf-keras-multi-worker-mirrored-strategy-mlflow
     ```
+    All job descriptions run source code from this repository, which was cloned into the mounted volume using git. The source code is located in the src subdirectory.
+
 9. Use `kubectl get pods` to check the current status and `kubectl logs POD_NAME` to check the output of one of the running pods. You can use the code server to edit the source code between starts of your job. You can log into the running container with the command `kubectl exec -ti POD_NAME -- /bin/bash`.
 10. To access Kubernetes from the code server IDE, the Kubernetes administrator must apply the `rbac.yaml` file. Note that `rbac.yaml` grants permission to the default security account of the namespace used by all pods. If you want to grant Kubernetes access only to a subset of pods, you must follow the instructions in the `kubectl-shell` directory in the root of this repository [README.md](../kubectl-shell/README.md). In addition, you must add the following lines to your `~/.bashrc` file in the code server IDE:
     ```sh
