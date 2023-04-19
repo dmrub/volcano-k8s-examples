@@ -1,3 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: pytorch-codeserver
+  name: pytorch-codeserver
+  namespace: dmrub
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8888
+  selector:
+    run: pytorch-codeserver
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
