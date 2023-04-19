@@ -33,6 +33,11 @@ spec:
               image: tensorflow/tensorflow:2.9.1-gpu
               # image: ghcr.io/dfki-asr/tensorflow:2.9.1-gpu-fix
               imagePullPolicy: Always
+              env:
+                - name: MODEL_PATH
+                  value: ./keras-model # /tmp/keras-model
+                - name: TEMP_MODEL_PATH
+                  value: ./keras-model-temp # /tmp/keras-model # /var/data/keras-model
               command:
                 - /bin/bash
                 - -c

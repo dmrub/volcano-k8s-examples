@@ -44,6 +44,10 @@ spec:
                   value: http://mlflow-server-service.mlflow-system:5000
                 - name: MLFLOW_EXPERIMENT_NAME
                   value: tf-mnist-experiment
+                - name: MODEL_PATH
+                  value: ./keras-model # /tmp/keras-model
+                - name: TEMP_MODEL_PATH
+                  value: ./keras-model-temp # /tmp/keras-model # /var/data/keras-model
               command:
                 - /bin/bash
                 - -c
