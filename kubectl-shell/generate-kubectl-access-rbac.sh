@@ -138,6 +138,9 @@ rules:
 - apiGroups: [\"metrics.k8s.io\"]
   resources: [\"nodes\"]
   verbs: [\"get\", \"list\", \"watch\"]
+- apiGroups: [\"scheduling.volcano.sh\"]
+  resources: [\"queues\"]
+  verbs: [\"get\", \"list\", \"watch\"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
